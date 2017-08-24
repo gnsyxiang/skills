@@ -1,0 +1,33 @@
+{
+  "name": "skills",
+  "version": "1.0.0",
+  "description": "summarize the tools and experience used in the work",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -w -s"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gnsyxiang/skills.git"
+  },
+  "keywords": [
+    "tools",
+    "skills",
+    "experience"
+  ],
+  "author": "gnsyxiang",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gnsyxiang/skills/issues"
+  },
+  "homepage": "https://github.com/gnsyxiang/skills#readme",
+  "devDependencies": {
+    "cz-conventional-changelog": "^2.0.0"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  }
+}
