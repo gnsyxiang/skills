@@ -9,9 +9,8 @@ configure-sources
   ```txt
   E: Could not get lock /var/lib/apt/lists/lock - open (11: Resource temporarily unavailable)
   E: Unable to lock the list directory
-  ```
 
-```sh
-  $ sudo rm /var/lib/apt/lists/lock
-  $ sudo rm /var/cache/apt/archives/lock
-```
+  执行如下命令:
+   $ sudo rm /var/lib/apt/lists/lock
+   $ sudo rm /var/cache/apt/archives/lock
+  ```

@@ -100,6 +100,8 @@ configure-ip
   查看和配置网络接口的地址和参数，包括IP、掩码、广播地址，它的使用权限是超级用户。
 
 * 常见参数  
+
+```txt
   interface          //指定网络接口名，如eth0和eth1
   up                 //激活指定的网络接口卡
   down               //关闭指定的网络接口卡
@@ -107,24 +109,43 @@ configure-ip
   poin to poin       //启用点对点方式
   address            //设置指定接口设备的IP地址
   netmask address    //设置接口的子网掩码
+```
 
 * 使用实例  
   查看网络的配置（所有活动的接口）
+
+  ```sh
   $ ifconfig
+  ```
 
   查看指定的网络接口  
+
+  ```sh
   $ ifconfig eth0
+  ```
 
   显示所有接口（包括非活跃接口）  
+
+  ```sh
   $ ifconfig -a
+  ```
 
   关闭指定网络接口  
+
+  ```sh
   $ ifconfig eth0 down
+  ```
 
   开启指定网络接口  
+
+  ```sh
   $ ifconfig eth0 up
+  ```
 
   临时设置eth0的IP地址、子网掩码，不需要重启，立即生效。重启后就会失效。  
+
+  ```sh
   $ifconfig eth0 192.168.7.119 netmask 255.255.255.0
+  ```
 
 
