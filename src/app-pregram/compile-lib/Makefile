@@ -13,8 +13,11 @@
 # ===============================================================
 
 
-all:
-	gcc -o main test-hello.c -L./hello -lhello -I./hello
+static:
+	gcc -o main test-hello.c -L./hello-static -lhello -I./hello-static
+
+dynamic:
+	gcc -o main test-hello.c -L./hello-dynamic -lhello -I./hello-dynamic
 
 clean:
 	rm -rf main
