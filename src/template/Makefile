@@ -4,7 +4,7 @@
 # Copyright(C),
 # Author: zhenquan.qiu
 # Version: V1.0.0
-# Last modified: 31/08 2017 17:29
+# Last modified: 31/08 2017 17:44
 # Description:
 #
 # Change Log:
@@ -13,16 +13,17 @@
 # ===============================================================
 
 ROOT := $(shell pwd)
-TARGET := hello
+TARGET := order-table
 
 RM := $(Q)rm -rf
 
-CFLAGS := -fPIC
-CFLAGS += -Wall
+# cflags
+CFLAGS := -Wall -g
 CFLAGS += -c
 CFLAGS += -I.
 
-LDFLAGS := -shared
+# ldflags
+LDFLAGS :=
 
 # c files
 C_SRC := $(wildcard *.c)
@@ -30,11 +31,11 @@ O_SRC := $(patsubst %.c, %.o, $(C_SRC))
 
 all:
 	gcc $(CFLAGS) $(C_SRC)
-	gcc $(LDFLAGS) $(O_SRC) -o lib$(TARGET).so
+	gcc $(LDFLAGS) $(O_SRC) -o $(TARGET)
 
 clean:
 	$(RM) $(O_SRC)
-	$(RM) lib$(TARGET).so
+	$(RM) $(TARGET)
 
 debug:
 	echo $(C_SRC)
