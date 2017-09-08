@@ -21,6 +21,32 @@ study-makefile
 
 ## 内置函数
 
+### 过滤函数 -- filter
+
+* 格式  
+
+```makefile
+   $(filter PATTERN…,TEXT) 
+```
+
+* 功能  
+  过滤掉字串`TEXT`中所有不符合模式`PATTERN`的单词，保留所有符合此模式的单词。  
+  可以使用多个模式。模式中一般需要包含模式字符`%`。存在多个模式时，模式表达式之间使用空格分割。
+
+* 返回  
+  空格分割的`TEXT`字串中所有符合模式`PATTERN`的字串。
+
+* eg  
+
+```makefile
+   sources := foo.c bar.c baz.s ugh.h
+   foo: $(sources)
+   cc $(filter %.c %.s,$(sources)) -o foo
+
+   $(filter %.c %.s,$(sources))返回值为: foo.c bar.c baz.s
+```
+
+
 ### 模式字符串替换函数 -- patsubst
 
 * 格式  
