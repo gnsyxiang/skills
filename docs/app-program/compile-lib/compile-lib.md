@@ -159,4 +159,182 @@ uso@u-os:$ ldd main
         /lib64/ld-linux-x86-64.so.2 (0x000055b541245000)
 ```
 
+## -L、-rpath和-rpath-link的区别
+
+* -L: 指定`链接时`的库路径  
+* LD_LIBRARY_PATH: 指定可执行文件`运行时`库的路径，还指定了库所依赖与其他库的路径  
+* -rpath: 指定是`运行时`，程序间接依赖库的库搜索路径，直接编译进可执行程序中  
+* -rpath-link: 指的是`链接时`，程序间接依赖库的库搜索路径，只用于链接，不负责运行  
+
+### 测试文件
+
+```c
+world.c
+#include <stdio.h>
+
+void world(void)
+{
+    printf("world \n");
+}
+
+hello.c
+#include <stdio.h>
+void world(void);
+void hello(void)
+{
+    printf("hello \n");
+    world();
+}
+
+test.c
+#include <stdio.h>
+
+void main(void)
+{
+    hello();
+}
+```
+
+### 生成动态库
+
+```sh
+   uso@u-os:$ gcc -c -fPIC world.c
+   uso@u-os:$ gcc -shared world.o -o libworld.so
+
+   uso@u-os:$ ldd libworld.so
+        linux-vdso.so.1 =>  (0x00007ffe86d30000)
+        /lib64/ld-linux-x86-64.so.2.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f923cd24000)
+        /lib64/ld-linux-x86-64.so.2 (0x000055bf4123d000)
+
+   uso@u-os:$ gcc -c -fPIC hello.c
+   uso@u-os:$ gcc -shared hello.o -o libhello.so
+
+   uso@u-os:$ ldd libhello.so
+        linux-vdso.so.1 =>  (0x00007ffce614b000)
+        libc.so.6 =>        /lib/x86_64-linux-gnu/libc.so.6 (0x00007f1dfd45e000)
+        /lib64/ld-linux-x86-64.so.2 (0x0000563d96eb0000)
+
+```
+note: 两个库依赖都是相同的库，并且3个库都是硬编码进libhello.so和libworld.so中。
+
+```sh
+   uso@u-os:$ gcc -shared hello.o -lworld -L. -o libhello.so
+
+   uso@u-os:$ ldd libhello.so
+        linux-vdso.so.1 =>  (0x00007ffe8c3ee000)
+        libworld.sho => not found
+        libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f82f3096000)
+        /lib64/ld-linux-x86-64.so.2 (0x000055cd011e1000)
+```
+
+note: 此时libhello.so已经依赖于libworld.so，但是没有找到
+
+### 编译test
+
+```sh
+   uso@u-os:$ gcc test.c -lhello -L. -o test
+   /usr/bin/ld: warning: libworld.so, needed by ./libhello.so, not found (try using -rpath or -rpath-link)
+   ./libhello.so: undefined reference to `world'
+   collect2: error: ld returned 1 exit status`
+```
+
+note: 从上面的现象可以看出，即使用-L指定了路劲，可以找到libhello.so，但是找不到libworld.so。  
+虽然它在同一个目录下，但是还是没有办法自动找到libworld.so
+
+```sh
+   uso@u-os:$ gcc test.c -lhello -lworld -L. -o test
+
+   uso@u-os:$ ./test
+   ./test: error while loading shared libraries: libhello.so: cannot open shared object file: No such file or directory
+
+   uso@u-os:$ ldd test
+   linux-vdso.so.1 =>  (0x00007ffc733b2000)
+   libhello.so => not foundund
+   libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007fa6fa0b8000)
+    /lib64/ld-linux-x86-64.so.2 (0x0000560b1d5da000)
+```
+
+note: 编译通过了，但是运行找不到库文件路径，可以设置`LD_LIBRARY_PATH`
+
+```sh
+   uso@u-os:$ export LD_LIBRARY_PATH=./
+   uso@u-os:$ ldd test
+        linux-vdso.so.1 =>  (0x00007ffd299e0000)
+        libhello.so => ./libhello.so (0x00007efccfed4000)
+        libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007efccfaef000)
+        libworld.so => ./libworldd.so (0x00007efccf8ec000)
+        /lib64/ld-linux-x86-64.so.2 (0x000055e960b0f000)
+```
+
+note: -L指定链接时库路径，LD_LIBRARY_PATH指定运行时库路径
+
+### -rpath
+
+```sh
+   uso@u-os:$ export LD_LIBRARY_PATH=
+   uso@u-os:$ mv libworld.so ./lib
+   uso@u-os:$ gcc test.c -lhello -L. -Wl,-rpath ./lib -o test
+
+   uso@u-os:$ ldd test
+        linux-vdso.so.1 =>  (0x00007fff6f524000)
+        libhello.so => not FINIound
+        libc.so.6 => /lib/xFINI_ARRAY
+        /lib64/ld-linux-x86-64.so.2 (0x00005600024c6000)
+
+   uso@u-os:$ ./test
+        ./test: error while loading shared libraries: libhello.so: cannot open shared object file: No such file or directory
+
+   uso@u-os:$ export LD_LIBRARY_PATH=./
+   uso@u-os:$ ./test
+```
+
+note: -rpath指的是"运行"时，程序`直接依赖的库的依赖库`去找的目录，  
+也就是说，-rpath指定的路径会被记录在生成的可执行程序中，用于运行时。
+
+### -rpath-link
+
+```sh
+   uso@u-os:$ export LD_LIBRARY_PATH=
+   uso@u-os:$ mv libworld.so ./lib
+   uso@u-os:$ gcc test.c -lhello -L. -Wl,-rpath-link ./lib -o test
+
+   uso@u-os:$ ldd test
+        linux-vdso.so.1 =>  (0x00007fff6f524000)
+        libhello.so => not FINIound
+        libc.so.6 => /lib/xFINI_ARRAY
+        /lib64/ld-linux-x86-64.so.2 (0x00005600024c6000)
+
+   uso@u-os:$ ./test
+        ./test: error while loading shared libraries: libhello.so: cannot open shared object file: No such file or directory
+
+   uso@u-os:$ export LD_LIBRARY_PATH=./
+   uso@u-os:$ ./test
+        ./test: error while loading shared libraries: libworld.so: cannot open shared object file: No such file or directory
+
+   uso@u-os:$ export LD_LIBRARY_PATH=./:./lib
+   uso@u-os:$ ./test
+```
+
+note: -rpath-link这个用于"链接"时，例如test依赖libhello.so，但libhello.so又依赖libworld.so，  
+-L并没有指定libworld.so的路径，这个时候会从-rpath-link给的路径里找。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
